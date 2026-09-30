@@ -1,0 +1,23 @@
+{
+  "name": "b2b-wholesale-site",
+  "version": "1.0.0",
+  "description": "B2B Wholesale Site built on Cloudflare Workers",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 execute b2b_wholesale_db --local --file=./src/db/schema.sql",
+    "db:push": "wrangler d1 execute b2b_wholesale_db --remote --file=./src/db/schema.sql",
+    "typecheck": "tsc --noEmit",
+    "hash:admin": "node scripts/generate-admin-hash.js"
+  },
+  "dependencies": {
+    "@cloudflare/workers-types": "^4.20240117.0",
+    "hono": "^4.0.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3",
+    "wrangler": "^3.24.0"
+  }
+}

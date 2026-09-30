@@ -1,0 +1,52 @@
+name = "b2b-wholesale-site"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# 静态资源目录（前台 HTML/CSS/JS 中的 public/ 资源）
+[assets]
+directory = "./public"
+
+# ============================================================
+# D1：结构化内容数据库（CMS 的唯一事实来源）
+# ============================================================
+[[d1_databases]]
+binding = "DB"
+database_name = "b2b_wholesale_db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"  # 替换为 `wrangler d1 create b2b_wholesale_db` 返回的 id
+
+# ============================================================
+# R2：媒体文件存储（产品图等）
+# ============================================================
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "b2b-wholesale-media"
+
+# ============================================================
+# KV：跨请求共享的读写缓存层
+# 创建命令：wrangler kv namespace create CACHE
+# 把返回的 id 填到下面
+# ============================================================
+[[kv_namespaces]]
+binding = "CACHE"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+# ============================================================
+# 环境变量
+# 注意：生产环境请使用 `wrangler secret put` 配置敏感项，
+#      不要在此文件中写明文密码或 token。
+# ============================================================
+[vars]
+# 站点对外域名（用于 canonical / sitemap / Open Graph 绝对地址）
+SITE_URL = "https://example.com"
+
+# 可选：R2 媒体公开访问前缀（配置了绑定的自定义域名后填写，例如 https://media.example.com）
+# 留空则图片走 Worker 代理 /api/upload/image/:key
+# MEDIA_BASE_URL = "https://media.example.com"
+
+# 可选：后台接收询盘通知的邮箱
+# ADMIN_EMAIL = "owner@example.com"
+
+# 敏感项（请用 wrangler secret 配置，不要卸载这里）：
+#   wrangler secret put ADMIN_USERNAME
+#   wrangler secret put ADMIN_PASSWORD
+#   wrangler secret put EMAIL_API_KEY

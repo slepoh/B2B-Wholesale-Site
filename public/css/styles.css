@@ -1,0 +1,101 @@
+/* Minimal custom styles - most styling done via Tailwind CSS */
+
+.error-message {
+  color: #dc2626;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #fee2e2;
+  border-radius: 0.5rem;
+  display: none;
+}
+
+.success-message {
+  color: #16a34a;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #dcfce7;
+  border-radius: 0.5rem;
+  display: none;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+/* Slider specific styles */
+.slider-bg {
+  background-size: cover;
+  background-position: center;
+}
+
+.slider-dot.active {
+  background-color: #3b82f6;
+}
+
+.slide {
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.slide.active {
+  opacity: 1;
+}
+
+/* Mobile navigation */
+@media (max-width: 768px) {
+  .nav-menu {
+    display: none;
+  }
+  
+  .nav-menu.active {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+}
+
+/* Card hover effects */
+.product-card, .solution-card, .case-card, .news-card {
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.product-card:hover, .solution-card:hover, .case-card:hover, .news-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+/* Form focus states */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
