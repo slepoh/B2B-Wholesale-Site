@@ -397,6 +397,16 @@ cp .dev.vars.example .dev.vars
 
 #### 配置步骤
 
+**0. 应用数据库变更（首次升级必做）**
+
+AI 客服新增了 `ai_chat_config`、`ai_chat_messages` 两张表，需对远端 D1 执行一次 schema：
+
+```bash
+wrangler d1 execute b2b_wholesale_db --remote --file=src/db/schema.sql
+```
+
+`CREATE TABLE IF NOT EXISTS` 语句是幂等的，重复执行不会破坏已有数据。
+
 **1. 配置 LLM 密钥（必需）**
 
 客服需要一个 OpenAI 兼容的 LLM 接口。密钥走 Secret，**不要**写进配置文件或数据库：
