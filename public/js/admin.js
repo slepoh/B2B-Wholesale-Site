@@ -5,7 +5,7 @@ let currentLang = localStorage.getItem('adminLang') || 'en';
 const translations = {
   en: {
     login: { title: 'Admin Login', username: 'Username', password: 'Password', loginBtn: 'Login', invalidCreds: 'Invalid username or password', loginFailed: 'Login failed. Please try again.' },
-    nav: { dashboard: 'Dashboard', products: 'Products', categories: 'Categories', slides: 'Slides', solutions: 'Solutions', cases: 'Cases', news: 'News', pages: 'Pages', inquiries: 'Inquiries', leads: 'Leads', settings: 'Settings', seo: 'SEO & JSON-LD', robots: 'Robots.txt' },
+    nav: { dashboard: 'Dashboard', products: 'Products', categories: 'Categories', slides: 'Slides', solutions: 'Solutions', cases: 'Cases', news: 'News', pages: 'Pages', inquiries: 'Inquiries', leads: 'Leads', settings: 'Settings', seo: 'SEO & JSON-LD', robots: 'Robots.txt', aiChat: 'AI Chat' },
     dashboard: { title: 'Dashboard', totalProducts: 'Total Products', totalInquiries: 'Total Inquiries', pendingInquiries: 'Pending Inquiries', totalLeads: 'Total Leads', totalCases: 'Total Cases', totalNews: 'Total News' },
     common: { add: 'Add', edit: 'Edit', delete: 'Delete', save: 'Save', cancel: 'Cancel', actions: 'Actions', status: 'Status', active: 'Active', inactive: 'Inactive', active2: 'Active', inactive2: 'Inactive', featured: 'Featured', name: 'Name', title: 'Title', description: 'Description', image: 'Image', images: 'Images', url: 'URL', slug: 'Slug', sortOrder: 'Sort Order', selectCategory: 'Select Category', parent: 'Parent', noParent: 'No Parent', createdAt: 'Created', updatedAt: 'Updated', confirmDelete: 'Are you sure?', deleteSuccess: 'Deleted successfully', saveSuccess: 'Saved successfully', error: 'Error', loading: 'Loading...', noData: 'No data', viewAll: 'View All', addNew: 'Add New', uploadImage: 'Upload Image', imageUrl: 'Image URL', upload: 'Upload', logout: 'Logout', clearCache: 'Clear Cache', cacheCleared: 'Cache cleared successfully', cacheClearFailed: 'Failed to clear cache' },
     products: { title: 'Products', addProduct: 'Add Product', editProduct: 'Edit Product', productName: 'Product Name', shortDescription: 'Short Description', fullDescription: 'Full Description', price: 'Price', moq: 'MOQ (Min Order Qty)', category: 'Category', allCategories: 'All Categories', search: 'Search products...' },
@@ -17,14 +17,15 @@ const translations = {
     pages: { title: 'Pages', editPage: 'Edit Page', metaTitle: 'Meta Title', metaDescription: 'Meta Description', content: 'Page Content' },
     inquiries: { title: 'Inquiries', reply: 'Reply', replySubject: 'Reply Subject', replyMessage: 'Reply Message', sendReply: 'Send Reply', company: 'Company', phone: 'Phone', read: 'Read', unread: 'Unread', pending: 'Pending', completed: 'Completed' },
     leads: { title: 'Leads', leadName: 'Name', phone: 'Phone', whatsapp: 'WhatsApp', message: 'Message' },
-    settings: { title: 'Settings', generalSettings: 'General Settings', siteName: 'Site Name', siteTitle: 'Site Title', siteDescription: 'Site Description', siteKeywords: 'Site Keywords', logoUrl: 'Logo URL', popupSettings: 'Popup Settings', enablePopup: 'Enable Popup', popupDelay: 'Delay (seconds)', popupTitle: 'Popup Title', popupDescription: 'Popup Description', socialLinks: 'Social Links', contactInfo: 'Contact Info', addSocial: 'Add Social Link', platform: 'Platform', socialUrl: 'URL', contactType: 'Type', contactValue: 'Value', contactLabel: 'Label', email: 'Email', phone2: 'Phone', whatsapp2: 'WhatsApp', saveSettings: 'Save Settings' },
+    settings: { title: 'Settings', generalSettings: 'General Settings', siteName: 'Site Name', siteTitle: 'Site Title', siteDescription: 'Site Description', siteKeywords: 'Site Keywords', logoUrl: 'Logo URL', popupSettings: 'Popup Settings', enablePopup: 'Enable Popup', popupDelay: 'Delay (seconds)', popupTitle: 'Popup Title', popupDescription: 'Popup Description', socialLinks: 'Social Links', contactInfo: 'Contact Info', addSocial: 'Add Social Link', platform: 'Platform', socialUrl: 'URL', contactType: 'Type', contactValue: 'Value', contactLabel: 'Label', email: 'Email', phone2: 'Phone', whatsapp2: 'WhatsApp', saveSettings: 'Save Settings', aiChatSettings: 'AI Chat Settings', aiChatSessions: 'Recent Conversations' },
     seo: { title: 'JSON-LD Configuration', addConfig: 'Add Configuration', name: 'Name', schemaType: 'Schema Type', configValue: 'Configuration', extraData: 'Extra Data (JSON)' },
     robots: { title: 'Robots.txt Configuration', addRule: 'Add Rule', userAgent: 'User Agent', rule: 'Rule', allow: 'Allow', disallow: 'Disallow', preview: 'Preview robots.txt', robotRules: 'Robot Rules' },
+    aiChat: { title: 'AI Chat Settings', enable: 'Enable AI Chat', welcomeMessage: 'Welcome Message', systemPrompt: 'System Prompt', model: 'Model', apiUrl: 'API URL', themeColor: 'Theme Color', position: 'Bubble Position', positionRight: 'Right', positionLeft: 'Left', collectLead: 'Collect Contact Info', answerTechQuestions: 'Answer Technical Questions', maxHistory: 'Context History Length', keyConfigured: 'API Key configured', keyMissing: 'API Key NOT configured — run: wrangler secret put AI_API_KEY', recentSessions: 'Recent Conversations', noSessions: 'No conversations yet', messages: 'messages', viewConversation: 'View' },
     form: { required: 'Required', optional: 'Optional', selectOption: 'Select an option', enterText: 'Enter text', enterUrl: 'Enter URL', enterNumber: 'Enter number' }
   },
   zh: {
     login: { title: '管理员登录', username: '用户名', password: '密码', loginBtn: '登录', invalidCreds: '用户名或密码错误', loginFailed: '登录失败，请重试' },
-    nav: { dashboard: '仪表盘', products: '产品', categories: '分类', slides: '幻灯片', solutions: '解决方案', cases: '案例', news: '新闻', pages: '页面', inquiries: '询盘', leads: '潜在客户', settings: '设置', seo: 'SEO 和 JSON-LD', robots: 'Robots.txt' },
+    nav: { dashboard: '仪表盘', products: '产品', categories: '分类', slides: '幻灯片', solutions: '解决方案', cases: '案例', news: '新闻', pages: '页面', inquiries: '询盘', leads: '潜在客户', settings: '设置', seo: 'SEO 和 JSON-LD', robots: 'Robots.txt', aiChat: 'AI 客服' },
     dashboard: { title: '仪表盘', totalProducts: '产品总数', totalInquiries: '询盘总数', pendingInquiries: '待处理询盘', totalLeads: '潜在客户', totalCases: '案例总数', totalNews: '新闻总数' },
     common: { add: '添加', edit: '编辑', delete: '删除', save: '保存', cancel: '取消', actions: '操作', status: '状态', active: '启用', inactive: '禁用', active2: '启用中', inactive2: '已禁用', featured: '推荐', name: '名称', title: '标题', description: '描述', image: '图片', images: '图片', url: '链接', slug: '别名', sortOrder: '排序', selectCategory: '选择分类', parent: '父级', noParent: '无父级', createdAt: '创建时间', updatedAt: '更新时间', confirmDelete: '确定要删除吗？', deleteSuccess: '删除成功', saveSuccess: '保存成功', error: '错误', loading: '加载中...', noData: '暂无数据', viewAll: '查看全部', addNew: '新增', uploadImage: '上传图片', imageUrl: '图片地址', upload: '上传', logout: '退出登录', clearCache: '清除缓存', cacheCleared: '缓存已清除成功', cacheClearFailed: '清除缓存失败' },
     products: { title: '产品', addProduct: '添加产品', editProduct: '编辑产品', productName: '产品名称', shortDescription: '简短描述', fullDescription: '完整描述', price: '价格', moq: '最小起订量', category: '分类', allCategories: '全部分类', search: '搜索产品...' },
@@ -36,9 +37,10 @@ const translations = {
     pages: { title: '页面', editPage: '编辑页面', metaTitle: 'SEO 标题', metaDescription: 'SEO 描述', content: '页面内容' },
     inquiries: { title: '询盘', reply: '回复', replySubject: '回复主题', replyMessage: '回复内容', sendReply: '发送回复', company: '公司', phone: '电话', read: '已读', unread: '未读', pending: '处理中', completed: '已完成' },
     leads: { title: '潜在客户', leadName: '姓名', phone: '电话', whatsapp: 'WhatsApp', message: '留言' },
-    settings: { title: '设置', generalSettings: '基本设置', siteName: '网站名称', siteTitle: '网站标题', siteDescription: '网站描述', siteKeywords: '网站关键词', logoUrl: 'Logo 地址', popupSettings: '弹窗设置', enablePopup: '启用弹窗', popupDelay: '延迟时间（秒）', popupTitle: '弹窗标题', popupDescription: '弹窗描述', socialLinks: '社交媒体链接', contactInfo: '联系方式', addSocial: '添加社交链接', platform: '平台', socialUrl: '链接地址', contactType: '类型', contactValue: '值', contactLabel: '标签', email: '邮箱', phone2: '电话', whatsapp2: 'WhatsApp', saveSettings: '保存设置' },
+    settings: { title: '设置', generalSettings: '基本设置', siteName: '网站名称', siteTitle: '网站标题', siteDescription: '网站描述', siteKeywords: '网站关键词', logoUrl: 'Logo 地址', popupSettings: '弹窗设置', enablePopup: '启用弹窗', popupDelay: '延迟时间（秒）', popupTitle: '弹窗标题', popupDescription: '弹窗描述', socialLinks: '社交媒体链接', contactInfo: '联系方式', addSocial: '添加社交链接', platform: '平台', socialUrl: '链接地址', contactType: '类型', contactValue: '值', contactLabel: '标签', email: '邮箱', phone2: '电话', whatsapp2: 'WhatsApp', saveSettings: '保存设置', aiChatSettings: 'AI 客服设置', aiChatSessions: '最近会话' },
     seo: { title: 'JSON-LD 配置', addConfig: '添加配置', name: '名称', schemaType: 'Schema 类型', configValue: '配置内容', extraData: '额外数据 (JSON)' },
     robots: { title: 'Robots.txt 配置', addRule: '添加规则', userAgent: '用户代理', rule: '规则', allow: '允许', disallow: '禁止', preview: '预览 robots.txt', robotRules: '爬虫规则' },
+    aiChat: { title: 'AI 客服设置', enable: '启用 AI 客服', welcomeMessage: '欢迎语', systemPrompt: '系统提示词', model: '模型', apiUrl: 'API 接口地址', themeColor: '主题色', position: '气泡位置', positionRight: '右侧', positionLeft: '左侧', collectLead: '收集联系方式', answerTechQuestions: '允许回答技术问题', maxHistory: '上下文历史条数', keyConfigured: 'API Key 已配置', keyMissing: 'API Key 未配置 — 请执行：wrangler secret put AI_API_KEY', recentSessions: '最近会话', noSessions: '暂无会话记录', messages: '条消息', viewConversation: '查看' },
     form: { required: '必填', optional: '选填', selectOption: '请选择', enterText: '请输入', enterUrl: '请输入链接', enterNumber: '请输入数字' }
   }
 };
@@ -193,6 +195,7 @@ function switchPage(page) {
   else if (page === 'inquiries') loadInquiries();
   else if (page === 'leads') loadLeads();
   else if (page === 'settings') loadSettings();
+  else if (page === 'ai-chat') loadAiChatSettings();
 }
 
 async function loadDashboard() {
@@ -747,10 +750,219 @@ async function loadPopupSettings() {
   }
 }
 
+/** ===== AI 客服设置 ===== */
+async function loadAiChatSettings() {
+  const container = document.getElementById('ai-chat-form');
+  if (!container) return;
+
+  try {
+    const res = await fetch('/api/ai-chat/admin/config', {
+      headers: { 'Authorization': `Basic ${credentials}` }
+    });
+    const data = await res.json();
+    if (!data.success) {
+      container.innerHTML = `<p class="text-red-500">${t('common.error')}</p>`;
+      return;
+    }
+
+    const cfg = data.data || {};
+    const keyStatus = cfg.api_key_configured
+      ? `<span class="text-green-600 font-medium">✅ ${t('aiChat.keyConfigured')}</span>`
+      : `<span class="text-red-600 font-medium">⚠️ ${t('aiChat.keyMissing')}</span>`;
+
+    container.innerHTML = `
+      <form id="ai-chat-form-content" class="bg-white p-6 rounded-lg shadow max-w-3xl">
+        <div class="form-group mb-4">${keyStatus}</div>
+        <div class="form-group mb-4">
+          <label class="block font-medium mb-2">
+            <input type="checkbox" id="ac_is_enabled" ${cfg.is_enabled ? 'checked' : ''}> ${t('aiChat.enable')}
+          </label>
+        </div>
+        <div class="form-group mb-4">
+          <label class="block font-medium mb-2" for="ac_welcome_message">${t('aiChat.welcomeMessage')}</label>
+          <input type="text" id="ac_welcome_message" value="${escapeAttr(cfg.welcome_message || '')}">
+        </div>
+        <div class="form-group mb-4">
+          <label class="block font-medium mb-2" for="ac_system_prompt">${t('aiChat.systemPrompt')}</label>
+          <textarea id="ac_system_prompt" rows="6">${escapeHtmlText(cfg.system_prompt || '')}</textarea>
+        </div>
+        <div class="form-group mb-4">
+          <label class="block font-medium mb-2" for="ac_model">${t('aiChat.model')}</label>
+          <input type="text" id="ac_model" value="${escapeAttr(cfg.model || '')}" placeholder="gpt-4o-mini / deepseek-chat">
+        </div>
+        <div class="form-group mb-4">
+          <label class="block font-medium mb-2" for="ac_api_url">${t('aiChat.apiUrl')}</label>
+          <input type="text" id="ac_api_url" value="${escapeAttr(cfg.api_url || '')}" placeholder="https://api.deepseek.com/v1">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-group mb-4">
+            <label class="block font-medium mb-2" for="ac_theme_color">${t('aiChat.themeColor')}</label>
+            <input type="color" id="ac_theme_color" value="${escapeAttr(cfg.theme_color || '#2563eb')}">
+          </div>
+          <div class="form-group mb-4">
+            <label class="block font-medium mb-2" for="ac_position">${t('aiChat.position')}</label>
+            <select id="ac_position">
+              <option value="right" ${cfg.position !== 'left' ? 'selected' : ''}>${t('aiChat.positionRight')}</option>
+              <option value="left" ${cfg.position === 'left' ? 'selected' : ''}>${t('aiChat.positionLeft')}</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group mb-4">
+          <label class="block font-medium mb-2">
+            <input type="checkbox" id="ac_collect_lead" ${cfg.collect_lead ? 'checked' : ''}> ${t('aiChat.collectLead')}
+          </label>
+        </div>
+        <div class="form-group mb-4">
+          <label class="block font-medium mb-2">
+            <input type="checkbox" id="ac_answer_tech_questions" ${cfg.answer_tech_questions ? 'checked' : ''}> ${t('aiChat.answerTechQuestions')}
+          </label>
+        </div>
+        <div class="form-group mb-4">
+          <label class="block font-medium mb-2" for="ac_max_history">${t('aiChat.maxHistory')}</label>
+          <input type="number" id="ac_max_history" min="0" max="20" value="${cfg.max_history ?? 10}">
+        </div>
+        <button type="submit" class="btn">${t('common.save')}</button>
+      </form>
+    `;
+
+    document.getElementById('ai-chat-form-content')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await saveAiChatSettings();
+    });
+
+    loadAiChatSessions();
+  } catch (err) {
+    console.error('Failed to load AI chat settings', err);
+    container.innerHTML = `<p class="text-red-500">${t('common.error')}</p>`;
+  }
+}
+
+async function saveAiChatSettings() {
+  try {
+    const payload = {
+      is_enabled: document.getElementById('ac_is_enabled')?.checked ? 1 : 0,
+      welcome_message: document.getElementById('ac_welcome_message')?.value || '',
+      system_prompt: document.getElementById('ac_system_prompt')?.value || '',
+      model: document.getElementById('ac_model')?.value || '',
+      api_url: document.getElementById('ac_api_url')?.value || '',
+      theme_color: document.getElementById('ac_theme_color')?.value || '#2563eb',
+      position: document.getElementById('ac_position')?.value || 'right',
+      collect_lead: document.getElementById('ac_collect_lead')?.checked ? 1 : 0,
+      answer_tech_questions: document.getElementById('ac_answer_tech_questions')?.checked ? 1 : 0,
+      max_history: parseInt(document.getElementById('ac_max_history')?.value || '10'),
+    };
+
+    const res = await fetch('/api/ai-chat/admin/config', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${credentials}`
+      },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(t('common.saveSuccess'));
+    } else {
+      showToast(data.error || t('common.error'), 'error');
+    }
+  } catch (err) {
+    console.error('Failed to save AI chat settings', err);
+    showToast(t('common.error'), 'error');
+  }
+}
+
+async function loadAiChatSessions() {
+  const container = document.getElementById('ai-chat-sessions');
+  if (!container) return;
+
+  try {
+    const res = await fetch('/api/ai-chat/admin/sessions', {
+      headers: { 'Authorization': `Basic ${credentials}` }
+    });
+    const data = await res.json();
+    if (!data.success || !data.data || !data.data.length) {
+      container.innerHTML = `<p class="text-gray-500">${t('aiChat.noSessions')}</p>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="admin-table w-full">
+          <thead>
+            <tr>
+              <th>Session</th>
+              <th>${t('leads.message')}</th>
+              <th>${t('common.actions')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.data.map(s => `
+              <tr>
+                <td class="text-xs font-mono">${escapeHtmlText((s.session_id || '').slice(0, 12))}…<br><span class="text-gray-400">${s.message_count} ${t('aiChat.messages')}</span></td>
+                <td class="max-w-md truncate">${escapeHtmlText(s.last_message || '')}</td>
+                <td><button class="btn btn-sm" onclick="viewAiChatSession('${escapeAttr(s.session_id)}')">${t('aiChat.viewConversation')}</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div id="ai-chat-transcript" class="mt-4"></div>
+    `;
+  } catch (err) {
+    console.error('Failed to load AI chat sessions', err);
+    container.innerHTML = `<p class="text-red-500">${t('common.error')}</p>`;
+  }
+}
+
+window.viewAiChatSession = async function (sessionId) {
+  const container = document.getElementById('ai-chat-transcript');
+  if (!container) return;
+  try {
+    const res = await fetch(`/api/ai-chat/admin/messages/${encodeURIComponent(sessionId)}`, {
+      headers: { 'Authorization': `Basic ${credentials}` }
+    });
+    const data = await res.json();
+    if (!data.success) return;
+    container.innerHTML = `
+      <div class="bg-white rounded-lg shadow p-6 max-h-96 overflow-y-auto">
+        ${data.data.map(m => `
+          <div class="mb-3">
+            <span class="font-semibold ${m.role === 'user' ? 'text-blue-600' : 'text-green-600'}">${m.role === 'user' ? 'Visitor' : 'AI'}:</span>
+            <span class="whitespace-pre-wrap">${escapeHtmlText(m.content)}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.scrollIntoView({ behavior: 'smooth' });
+  } catch (err) {
+    console.error('Failed to load transcript', err);
+  }
+};
+
+/** 转义 HTML，防止后台渲染用户内容时注入 */
+function escapeHtmlText(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/** 转义 HTML 属性值（用于 value="..." / onclick 参数） */
+function escapeAttr(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 async function loadSocialLinks() {
   const container = document.getElementById('social-links-form');
   if (!container) return;
-  
   try {
     const res = await fetch('/api/settings/social');
     const data = await res.json();

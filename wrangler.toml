@@ -50,3 +50,6 @@ SITE_URL = "https://example.com"
 #   wrangler secret put ADMIN_USERNAME
 #   wrangler secret put ADMIN_PASSWORD
 #   wrangler secret put EMAIL_API_KEY
+#   wrangler secret put AI_API_KEY        # AI 客服的 LLM 密钥（OpenAI 兼容）
+# 可选：AI 客服默认接口地址（可在后台覆盖）
+# AI_API_URL = "https://api.deepseek.com/v1"

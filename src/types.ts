@@ -12,6 +12,10 @@ export interface Env {
   SITE_URL?: string;
   /** R2 媒体公开访问前缀（可选）。配置后图片走自定义域名，否则回退到 Worker 代理 /api/upload/image/:key */
   MEDIA_BASE_URL?: string;
+  /** LLM API Key（OpenAI 兼容）。请用 wrangler secret 配置，不要写入配置文件或数据库 */
+  AI_API_KEY?: string;
+  /** LLM 接口默认地址（OpenAI 兼容），可在后台覆盖。例如 https://api.deepseek.com/v1 */
+  AI_API_URL?: string;
 }
 
 export interface Category {
@@ -250,4 +254,47 @@ export interface ContactInfo {
   sort_order: number;
   created_at: string;
   updated_at: string;
+}
+
+/** AI 客服配置（单例表 ai_chat_config） */
+export interface AiChatConfig {
+  id: number;
+  is_enabled: number;
+  welcome_message: string | null;
+  system_prompt: string | null;
+  model: string;
+  /** OpenAI 兼容端点，为空时回退环境变量 AI_API_URL */
+  api_url: string | null;
+  theme_color: string;
+  position: string;
+  collect_lead: number;
+  answer_tech_questions: number;
+  max_history: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/** 前台可见的 AI 客服配置（剥离 system_prompt / api_url 等敏感项） */
+export interface AiChatPublicConfig {
+  is_enabled: number;
+  welcome_message: string | null;
+  theme_color: string;
+  position: string;
+}
+
+/** AI 客服会话消息 */
+export interface AiChatMessage {
+  id: number;
+  session_id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  created_at: string;
+}
+
+/** 会话概要（后台查看用） */
+export interface AiChatSessionSummary {
+  session_id: string;
+  last_message: string;
+  message_count: number;
+  last_at: string;
 }

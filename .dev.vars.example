@@ -4,3 +4,6 @@ ADMIN_USERNAME=admin
 ADMIN_PASSWORD=change-me-please
 # EMAIL_API_KEY=your-mailchannels-key
 # ADMIN_EMAIL=owner@example.com
+# AI 客服（OpenAI 兼容接口）
+# AI_API_KEY=your-llm-api-key
+# AI_API_URL=https://api.deepseek.com/v1

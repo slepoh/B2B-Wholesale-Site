@@ -14,6 +14,7 @@
 - **新闻博客** - 公司动态、行业资讯与详情页（`/news/:slug`）
 - **自定义页面** - About / Contact 等页面（`/page/:slug`）
 - **询盘功能** - 客户可以发送询盘，自动发送邮件通知
+- **AI 智能客服** - 右下角气泡，基于站点内容回答，自动捕获购买意向为线索
 - **悬浮客服** - Email、电话、WhatsApp 快速联系
 - **Get a Quote 弹出框** - 快速询价弹窗
 - **多语言** - 前台语言切换（需配置翻译 API）
@@ -390,6 +391,67 @@ cp .dev.vars.example .dev.vars
 }
 ```
 
+### 12. AI 智能客服
+
+前台右下角提供 AI 客服气泡，能基于站点真实内容（产品、分类、方案、案例、新闻、联系方式）回答访客问题，并**自动识别购买意向**——当访客留下邮箱或电话时，自动写入 `Leads` 并发送邮件通知。
+
+#### 配置步骤
+
+**1. 配置 LLM 密钥（必需）**
+
+客服需要一个 OpenAI 兼容的 LLM 接口。密钥走 Secret，**不要**写进配置文件或数据库：
+
+```bash
+wrangler secret put AI_API_KEY
+```
+
+可选：设置默认接口地址（未在后台填写 `API URL` 时使用）
+
+```toml
+# wrangler.toml [vars]
+AI_API_URL = "https://api.deepseek.com/v1"
+```
+
+**2. 在后台配置**
+
+进入后台 **AI Chat** 页面：
+
+| 配置项 | 说明 |
+|--------|------|
+| **Enable AI Chat** | 开启/关闭前台客服（默认关闭） |
+| **Welcome Message** | 打开面板时的欢迎语 |
+| **System Prompt** | 系统提示词，定义客服人设与回答风格 |
+| **Model** | 模型名，如 `deepseek-chat`、`gpt-4o-mini` |
+| **API URL** | OpenAI 兼容端点，如 `https://api.deepseek.com/v1` |
+| **Theme Color** | 气泡与面板主色 |
+| **Bubble Position** | 气泡位置（左/右） |
+| **Collect Contact Info** | 是否在对话中收集联系方式（开启后自动落 Leads） |
+| **Answer Technical Questions** | 是否允许回答行业技术问题（默认关闭，只答产品/公司/联系） |
+| **Context History Length** | 送入模型的历史消息条数（0-20） |
+
+页面顶部会显示 API Key 状态（已配置 / 未配置）。
+
+**3. 验证**
+
+打开前台任意页面，右下角出现客服气泡。提问产品相关问题，客服会基于站点内容回答。
+
+#### 工作原理
+
+```
+访客提问 → POST /api/ai-chat/chat
+         → 读取配置 + 组装知识上下文（D1 产品/方案/案例/新闻）
+         → 调用 LLM（OpenAI 兼容）
+         → 保存会话到 ai_chat_messages
+         → 命中邮箱/电话 → 写入 leads（source='ai_chat'）+ 邮件通知
+```
+
+- **知识来源**：实时从 D1 读取站点内容拼进 system prompt，后台增删改产品后客服自动使用最新数据（缓存随产品变更失效）
+- **多轮对话**：同一会话保留上下文，`session_id` 存于前端 localStorage
+- **限流**：每会话每小时最多 30 条，防止公开接口被滥用
+- **降级**：未配置 `AI_API_KEY` 或未启用时，前台不渲染客服气泡
+
+> **兼容性**：任何提供 OpenAI 兼容 `/chat/completions` 接口的服务都可使用（DeepSeek / OpenRouter / 通义 / Moonshot / 自建代理等），只需改后台的 `API URL` 与 `Model`。
+
 ---
 
 ## 项目结构
@@ -412,7 +474,8 @@ B2B-Wholesale-Site/
 │   │   ├── leads.ts            # Leads API
 │   │   ├── slides.ts           # 幻灯片 API
 │   │   ├── jsonld.ts           # JSON-LD API
-│   │   └── robots.ts           # Robots API
+│   │   ├── robots.ts           # Robots API
+│   │   └── ai-chat.ts          # AI 客服 API（对话/配置/会话）
 │   ├── db/                     # 数据库相关
 │   │   ├── index.ts            # 数据库操作类（读写 KV 缓存 + 失效）
 │   │   ├── cache.ts            # 缓存后端抽象（KV / Memory 双实现，前缀失效）
@@ -430,7 +493,8 @@ B2B-Wholesale-Site/
 │   │   └── admin.css           # 后台样式
 │   ├── js/                     # JavaScript 文件
 │   │   ├── main.js             # 前台逻辑（jQuery）
-│   │   └── admin.js            # 后台逻辑（jQuery）
+│   │   ├── admin.js            # 后台逻辑（jQuery）
+│   │   └── ai-chat-widget.js   # 前台 AI 客服 widget（原生 JS）
 │   └── images/                 # 静态图片（如占位图）
 ├── scripts/
 │   └── generate-admin-hash.js  # 密码哈希生成脚本
@@ -686,6 +750,15 @@ Worker 会自动从 `public` 目录提供静态资源，无需额外配置。
 ---
 
 ## 更新日志
+
+### v1.4.0
+- **新增前台 AI 智能客服**：右下角可折叠气泡，基于 D1 真实站点内容回答访客问题
+- **购买意向自动捕获**：对话中出现邮箱/电话时自动写入 `Leads`（`source='ai_chat'`）并邮件通知
+- 后台新增 **AI Chat** 配置页：开关、欢迎语、系统提示词、模型、接口地址、主题色、位置、收集线索、技术问答开关、上下文长度
+- 新增 `ai_chat_config` / `ai_chat_messages` 表，会话消息留存并可在后台查看
+- LLM 采用 **OpenAI 兼容协议**，`api_url` / `model` 后台可配，密钥走 `wrangler secret AI_API_KEY`；兼容 DeepSeek / OpenRouter / 通义 / Moonshot
+- 公开接口 `/api/ai-chat/chat` 增加**限流**（每会话每小时 30 条）与输入长度校验
+- 修复后台 `/stats` 仅返回 3 项导致仪表盘部分统计为空的问题（改用 `db.getStats()` 返回完整 6 项）
 
 ### v1.3.0
 - **新增 KV 跨请求缓存层**（`src/db/cache.ts`），写操作主动失效前缀，打通「后台改 → 前台立即生效」的完整 CMS 闭环

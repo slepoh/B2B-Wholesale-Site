@@ -99,3 +99,26 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: #a1a1a1;
 }
+/* ===== AI 智能客服 widget ===== */
+.ai-chat-bubble:hover {
+  transform: scale(1.08);
+}
+
+#ai-chat-panel {
+  animation: aiChatPop 0.18s ease-out;
+}
+
+@keyframes aiChatPop {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 移动端：面板铺满宽度 */
+@media (max-width: 480px) {
+  #ai-chat-panel {
+    width: calc(100vw - 24px) !important;
+    height: calc(100vh - 140px) !important;
+    left: 12px !important;
+    right: 12px !important;
+  }
+}

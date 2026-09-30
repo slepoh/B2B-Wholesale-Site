@@ -18,6 +18,7 @@ import leads from './api/leads';
 import slides from './api/slides';
 import jsonLd from './api/jsonld';
 import robots from './api/robots';
+import aiChat from './api/ai-chat';
 import { authMiddleware } from './middleware/auth';
 import { Database, generateRobotsTxt, generateLLMsTxt } from './db';
 
@@ -309,6 +310,7 @@ function getPageLayout(
       }
     });
   </script>
+  <script src="/js/ai-chat-widget.js" defer></script>
 </body>
 </html>`;
 }
@@ -618,6 +620,7 @@ app.get('/', async (c) => {
     window.popupSettings = ${JSON.stringify(await db.getPopupSettings() || {})};
   </script>
   <script src="/js/main.js"></script>
+  <script src="/js/ai-chat-widget.js" defer></script>
 </body>
 </html>
   `);
@@ -698,6 +701,7 @@ app.route('/api/leads', leads);
 app.route('/api/slides', slides);
 app.route('/api/jsonld', jsonLd);
 app.route('/api/robots', robots);
+app.route('/api/ai-chat', aiChat);
 
 app.get('/admin/*', async (c) => {
   return c.html(`<!DOCTYPE html>
@@ -756,6 +760,7 @@ app.get('/admin/*', async (c) => {
           <a href="#settings" class="nav-item flex items-center gap-3 px-4 py-3 hover:bg-gray-800 transition" data-i18n="nav.settings"><iconify-icon icon="mdi:cog"></iconify-icon> Settings</a>
           <a href="#seo" class="nav-item flex items-center gap-3 px-4 py-3 hover:bg-gray-800 transition" data-i18n="nav.seo"><iconify-icon icon="mdi:magnify"></iconify-icon> SEO & JSON-LD</a>
           <a href="#robots" class="nav-item flex items-center gap-3 px-4 py-3 hover:bg-gray-800 transition" data-i18n="nav.robots"><iconify-icon icon="mdi:robot"></iconify-icon> Robots.txt</a>
+          <a href="#ai-chat" class="nav-item flex items-center gap-3 px-4 py-3 hover:bg-gray-800 transition" data-i18n="nav.aiChat"><iconify-icon icon="mdi:robot-happy"></iconify-icon> AI Chat</a>
         </nav>
       </aside>
       <main class="main-content ml-64 p-8">
@@ -798,6 +803,12 @@ app.get('/admin/*', async (c) => {
         </div>
         <div id="seo-page" class="page hidden"><h2 class="text-xl font-semibold mb-4" data-i18n="seo.title">JSON-LD Configuration</h2><div id="jsonld-form"></div></div>
         <div id="robots-page" class="page hidden"><h2 class="text-xl font-semibold mb-4" data-i18n="robots.title">Robots.txt Configuration</h2><div id="robots-form"></div><button class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" onclick="previewRobots()" data-i18n="robots.preview">Preview robots.txt</button></div>
+        <div id="ai-chat-page" class="page hidden">
+          <h2 class="text-xl font-semibold mb-4" data-i18n="settings.aiChatSettings">AI Chat Settings</h2>
+          <div id="ai-chat-form"></div>
+          <h2 class="text-xl font-semibold mt-10 mb-4" data-i18n="settings.aiChatSessions">Recent Conversations</h2>
+          <div id="ai-chat-sessions"></div>
+        </div>
       </main>
     </div>
   </div>

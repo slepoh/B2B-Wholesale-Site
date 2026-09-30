@@ -51,6 +51,8 @@ export const ALL_CACHE_PREFIXES = [
   'jsonld',
   'robots',
   'email_config',
+  'ai_chat_config',
+  'ai_knowledge',
 ];
 
 /**

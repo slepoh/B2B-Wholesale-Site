@@ -1,5 +1,5 @@
 import { D1Database, R2Bucket, KVNamespace } from '@cloudflare/workers-types';
-import type { Category, Product, Inquiry } from '../types';
+import type { Category, Product, Inquiry, AiChatConfig, AiChatMessage, AiChatSessionSummary } from '../types';
 import { createCache, CACHE_CONFIG, type CacheBackend } from './cache';
 
 export interface Env {
@@ -111,7 +111,7 @@ class Database {
       category.is_active !== undefined ? (category.is_active ? 1 : 0) : 1
     ).run();
     
-    await this.invalidateCache(['categories', 'category_slug', 'category_id']);
+    await this.invalidateCache(['categories', 'category_slug', 'category_id', 'ai_knowledge']);
     return result.meta!.last_row_id as number;
   }
 
@@ -129,13 +129,13 @@ class Database {
     params.push(id);
     const result = await this.db.prepare(`UPDATE categories SET ${updates.join(', ')} WHERE id = ?`).bind(...params).run();
     
-    await this.invalidateCache(['categories', 'category_slug', 'category_id']);
+    await this.invalidateCache(['categories', 'category_slug', 'category_id', 'ai_knowledge']);
     return result.success;
   }
 
   async deleteCategory(id: number): Promise<boolean> {
     const result = await this.db.prepare('DELETE FROM categories WHERE id = ?').bind(id).run();
-    await this.invalidateCache(['categories', 'category_slug', 'category_id']);
+    await this.invalidateCache(['categories', 'category_slug', 'category_id', 'ai_knowledge']);
     return result.success;
   }
 
@@ -234,7 +234,7 @@ class Database {
       product.is_featured !== undefined ? (product.is_featured ? 1 : 0) : 0
     ).run();
     
-    await this.invalidateCache(['products', 'product_slug', 'product_id', 'featured_products']);
+    await this.invalidateCache(['products', 'product_slug', 'product_id', 'featured_products', 'ai_knowledge']);
     return result.meta!.last_row_id as number;
   }
 
@@ -257,13 +257,13 @@ class Database {
     params.push(id);
     const result = await this.db.prepare(`UPDATE products SET ${updates.join(', ')} WHERE id = ?`).bind(...params).run();
     
-    await this.invalidateCache(['products', 'product_slug', 'product_id', 'featured_products']);
+    await this.invalidateCache(['products', 'product_slug', 'product_id', 'featured_products', 'ai_knowledge']);
     return result.success;
   }
 
   async deleteProduct(id: number): Promise<boolean> {
     const result = await this.db.prepare('DELETE FROM products WHERE id = ?').bind(id).run();
-    await this.invalidateCache(['products', 'product_slug', 'product_id', 'featured_products']);
+    await this.invalidateCache(['products', 'product_slug', 'product_id', 'featured_products', 'ai_knowledge']);
     return result.success;
   }
 
@@ -515,7 +515,7 @@ class Database {
       solution.sort_order || 0
     ).run();
     
-    await this.invalidateCache(['solutions', 'solution_slug']);
+    await this.invalidateCache(['solutions', 'solution_slug', 'ai_knowledge']);
     return result.meta!.last_row_id as number;
   }
 
@@ -538,13 +538,13 @@ class Database {
     params.push(id);
     
     const result = await this.db.prepare(`UPDATE solutions SET ${updates.join(', ')} WHERE id = ?`).bind(...params).run();
-    await this.invalidateCache(['solutions', 'solution_slug']);
+    await this.invalidateCache(['solutions', 'solution_slug', 'ai_knowledge']);
     return result.success;
   }
 
   async deleteSolution(id: number): Promise<boolean> {
     const result = await this.db.prepare('DELETE FROM solutions WHERE id = ?').bind(id).run();
-    await this.invalidateCache(['solutions', 'solution_slug']);
+    await this.invalidateCache(['solutions', 'solution_slug', 'ai_knowledge']);
     return result.success;
   }
 
@@ -597,7 +597,7 @@ class Database {
       item.sort_order || 0
     ).run();
     
-    await this.invalidateCache(['cases', 'case_slug']);
+    await this.invalidateCache(['cases', 'case_slug', 'ai_knowledge']);
     return result.meta!.last_row_id as number;
   }
 
@@ -623,13 +623,13 @@ class Database {
     params.push(id);
     
     const result = await this.db.prepare(`UPDATE cases SET ${updates.join(', ')} WHERE id = ?`).bind(...params).run();
-    await this.invalidateCache(['cases', 'case_slug']);
+    await this.invalidateCache(['cases', 'case_slug', 'ai_knowledge']);
     return result.success;
   }
 
   async deleteCase(id: number): Promise<boolean> {
     const result = await this.db.prepare('DELETE FROM cases WHERE id = ?').bind(id).run();
-    await this.invalidateCache(['cases', 'case_slug']);
+    await this.invalidateCache(['cases', 'case_slug', 'ai_knowledge']);
     return result.success;
   }
 
@@ -693,7 +693,7 @@ class Database {
       item.published_at || new Date().toISOString()
     ).run();
     
-    await this.invalidateCache(['news', 'news_slug']);
+    await this.invalidateCache(['news', 'news_slug', 'ai_knowledge']);
     return result.meta!.last_row_id as number;
   }
 
@@ -716,13 +716,13 @@ class Database {
     params.push(id);
     
     const result = await this.db.prepare(`UPDATE news SET ${updates.join(', ')} WHERE id = ?`).bind(...params).run();
-    await this.invalidateCache(['news', 'news_slug']);
+    await this.invalidateCache(['news', 'news_slug', 'ai_knowledge']);
     return result.success;
   }
 
   async deleteNews(id: number): Promise<boolean> {
     const result = await this.db.prepare('DELETE FROM news WHERE id = ?').bind(id).run();
-    await this.invalidateCache(['news', 'news_slug']);
+    await this.invalidateCache(['news', 'news_slug', 'ai_knowledge']);
     return result.success;
   }
 
@@ -1151,6 +1151,179 @@ class Database {
     const result = await this.db.prepare(`UPDATE translation_config SET ${updates.join(', ')} WHERE id = 1`).bind(...params).run();
     await this.invalidateCache('translation_config');
     return result.success;
+  }
+
+  // ============================================================
+  // AI 智能客服
+  // ============================================================
+
+  async getAiChatConfig(): Promise<AiChatConfig | null> {
+    const cacheKey = this.getCacheKey('ai_chat_config', []);
+    const cached = await this.getFromCache<AiChatConfig>(cacheKey);
+    if (cached) return cached;
+
+    const result = await this.db.prepare('SELECT * FROM ai_chat_config LIMIT 1').first();
+    const config = (result as unknown as AiChatConfig) || null;
+
+    if (config) {
+      await this.setCache(cacheKey, config, CACHE_CONFIG.settings);
+    }
+    return config;
+  }
+
+  async updateAiChatConfig(config: {
+    is_enabled?: number;
+    welcome_message?: string;
+    system_prompt?: string;
+    model?: string;
+    api_url?: string;
+    theme_color?: string;
+    position?: string;
+    collect_lead?: number;
+    answer_tech_questions?: number;
+    max_history?: number;
+  }): Promise<boolean> {
+    const updates: string[] = [];
+    const params: any[] = [];
+
+    const fields: Array<keyof typeof config> = [
+      'is_enabled', 'welcome_message', 'system_prompt', 'model', 'api_url',
+      'theme_color', 'position', 'collect_lead', 'answer_tech_questions', 'max_history',
+    ];
+    for (const field of fields) {
+      const value = config[field];
+      if (value !== undefined) {
+        updates.push(`${field} = ?`);
+        params.push(value);
+      }
+    }
+
+    if (updates.length === 0) return false;
+    updates.push('updated_at = CURRENT_TIMESTAMP');
+
+    const result = await this.db.prepare(
+      `UPDATE ai_chat_config SET ${updates.join(', ')} WHERE id = 1`
+    ).bind(...params).run();
+    await this.invalidateCache('ai_chat_config');
+    return result.success;
+  }
+
+  /** 保存一条会话消息（不做缓存，实时性优先） */
+  async saveAiChatMessage(sessionId: string, role: 'user' | 'assistant', content: string): Promise<number> {
+    const result = await this.db.prepare(
+      'INSERT INTO ai_chat_messages (session_id, role, content) VALUES (?, ?, ?)'
+    ).bind(sessionId, role, content).run();
+    return (result.meta!.last_row_id as number) || 0;
+  }
+
+  /** 取某个会话最近 N 条消息（时间正序返回，用于拼多轮上下文） */
+  async getAiChatMessages(sessionId: string, limit = 10): Promise<AiChatMessage[]> {
+    const result = await this.db.prepare(
+      'SELECT * FROM ai_chat_messages WHERE session_id = ? ORDER BY id DESC LIMIT ?'
+    ).bind(sessionId, limit).all();
+    const rows = (result.results as unknown as AiChatMessage[]) || [];
+    return rows.reverse();
+  }
+
+  /** 后台查看：最近会话概要 */
+  async getRecentAiChatSessions(limit = 50): Promise<AiChatSessionSummary[]> {
+    const result = await this.db.prepare(`
+      SELECT session_id, COUNT(*) AS message_count, MAX(created_at) AS last_at,
+             (SELECT content FROM ai_chat_messages m2 WHERE m2.session_id = m1.session_id ORDER BY id DESC LIMIT 1) AS last_message
+      FROM ai_chat_messages m1
+      GROUP BY session_id
+      ORDER BY last_at DESC
+      LIMIT ?
+    `).bind(limit).all();
+    return (result.results as unknown as AiChatSessionSummary[]) || [];
+  }
+
+  /**
+   * 组装知识上下文：把 D1 里的产品/分类/方案/案例/新闻摘要拼成一段文本，
+   * 供 AI 客服作为 system prompt 的事实依据。结果带缓存。
+   */
+  async getKnowledgeContext(): Promise<string> {
+    const cacheKey = this.getCacheKey('ai_knowledge', []);
+    const cached = await this.getFromCache<string>(cacheKey);
+    if (cached) return cached;
+
+    const settings = await this.db.prepare('SELECT key, value FROM settings').all();
+    const siteName = settings.results?.find((s: any) => s.key === 'site_name')?.value || '';
+    const siteDesc = settings.results?.find((s: any) => s.key === 'site_description')?.value || '';
+
+    let ctx = '';
+    if (siteName) ctx += `Company: ${siteName}\n`;
+    if (siteDesc) ctx += `About: ${siteDesc}\n`;
+
+    const contacts = await this.db.prepare(
+      "SELECT type, label, value FROM contact_info WHERE is_active = 1 ORDER BY sort_order ASC"
+    ).all();
+    if (contacts.results?.length) {
+      ctx += 'Contact information:\n';
+      for (const row of contacts.results as any[]) {
+        ctx += `- ${row.label || row.type}: ${row.value}\n`;
+      }
+    }
+
+    const categories = await this.db.prepare(
+      'SELECT name, description FROM categories WHERE is_active = 1 ORDER BY sort_order ASC'
+    ).all();
+    if (categories.results?.length) {
+      ctx += 'Product categories:\n';
+      for (const row of categories.results as any[]) {
+        ctx += `- ${row.name}${row.description ? `: ${row.description}` : ''}\n`;
+      }
+    }
+
+    const products = await this.db.prepare(
+      'SELECT name, slug, short_description, price, min_order_qty FROM products WHERE is_active = 1 ORDER BY is_featured DESC, id DESC LIMIT 50'
+    ).all();
+    if (products.results?.length) {
+      ctx += 'Products:\n';
+      for (const row of products.results as any[]) {
+        const parts = [`${row.name} (/${row.slug})`];
+        if (row.short_description) parts.push(row.short_description);
+        if (row.price) parts.push(`price: ${row.price}`);
+        if (row.min_order_qty) parts.push(`MOQ: ${row.min_order_qty}`);
+        ctx += `- ${parts.join(' | ')}\n`;
+      }
+    }
+
+    const solutions = await this.db.prepare(
+      'SELECT title, short_description FROM solutions WHERE is_active = 1 LIMIT 20'
+    ).all();
+    if (solutions.results?.length) {
+      ctx += 'Solutions:\n';
+      for (const row of solutions.results as any[]) {
+        ctx += `- ${row.title}${row.short_description ? `: ${row.short_description}` : ''}\n`;
+      }
+    }
+
+    const cases = await this.db.prepare(
+      'SELECT title, industry, results FROM cases WHERE is_active = 1 LIMIT 20'
+    ).all();
+    if (cases.results?.length) {
+      ctx += 'Customer cases:\n';
+      for (const row of cases.results as any[]) {
+        const parts = [row.title];
+        if (row.industry) parts.push(`industry: ${row.industry}`);
+        if (row.results) parts.push(row.results);
+        ctx += `- ${parts.join(' | ')}\n`;
+      }
+    }
+
+    const news = await this.db.prepare(
+      'SELECT title, short_description FROM news WHERE is_active = 1 ORDER BY published_at DESC LIMIT 10'
+    ).all();
+    if (news.results?.length) {
+      ctx += 'Latest news:\n';
+      for (const row of news.results as any[]) {
+        ctx += `- ${row.title}${row.short_description ? `: ${row.short_description}` : ''}\n`;
+      }
+    }
+
+    await this.setCache(cacheKey, ctx, CACHE_CONFIG.settings);
+    return ctx;
   }
 }
 

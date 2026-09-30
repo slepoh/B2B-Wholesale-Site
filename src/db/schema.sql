@@ -360,3 +360,48 @@ CREATE TABLE IF NOT EXISTS translation_config (
 -- 默认翻译配置
 INSERT INTO translation_config (api_url, api_token, enabled_languages, is_enabled) VALUES
   ('', '', '["en", "zh"]', 0);
+
+-- ============================================================
+-- AI 智能客服
+-- ============================================================
+
+-- AI 客服配置表（单例，参照 translation_config）
+-- 注意：LLM 的 API Key 不存这里，走环境变量 AI_API_KEY（wrangler secret）
+CREATE TABLE IF NOT EXISTS ai_chat_config (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  is_enabled INTEGER DEFAULT 0,             -- 是否启用前台客服
+  welcome_message TEXT,                     -- 欢迎语
+  system_prompt TEXT,                       -- 系统提示词
+  model TEXT DEFAULT 'gpt-4o-mini',         -- 模型名
+  api_url TEXT,                             -- OpenAI 兼容端点，可空（回退环境变量 AI_API_URL）
+  theme_color TEXT DEFAULT '#2563eb',       -- 面板主色
+  position TEXT DEFAULT 'right',            -- 气泡位置 right / left
+  collect_lead INTEGER DEFAULT 1,           -- 是否在对话中收集联系方式
+  answer_tech_questions INTEGER DEFAULT 0,  -- 是否允许回答行业技术问题
+  max_history INTEGER DEFAULT 10,           -- 送入模型的历史消息条数
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- AI 客服会话消息表（多轮上下文 + 后台查看）
+CREATE TABLE IF NOT EXISTS ai_chat_messages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id TEXT NOT NULL,                 -- 前端生成的会话标识
+  role TEXT NOT NULL,                       -- user / assistant
+  content TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_ai_chat_msg_session ON ai_chat_messages(session_id);
+CREATE INDEX IF NOT EXISTS idx_ai_chat_msg_created ON ai_chat_messages(created_at);
+
+-- 默认 AI 客服配置（默认关闭，配置好 API Key 后再启用）
+INSERT INTO ai_chat_config (is_enabled, welcome_message, system_prompt, model, theme_color, position, collect_lead, answer_tech_questions, max_history) VALUES
+  (0,
+   'Hi! How can I help you with our products today?',
+   'You are a professional and friendly B2B sales assistant. Answer questions based ONLY on the product and company information provided in the context. Be concise, helpful and sales-oriented. If the visitor shows buying intent (asking about price, MOQ, shipping, or how to order), politely encourage them to leave their contact information so our team can follow up. If you do not know something, say so honestly and offer to connect them with our team. Reply in the same language the visitor uses.',
+   'gpt-4o-mini',
+   '#2563eb',
+   'right',
+   1,
+   0,
+   10);

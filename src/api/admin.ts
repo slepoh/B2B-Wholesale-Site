@@ -247,18 +247,10 @@ admin.delete('/pages/:id', async (c) => {
 
 admin.get('/stats', async (c) => {
   const db = new Database(c.env.DB, c.env.CACHE);
-  const [products, inquiries, pending] = await Promise.all([
-    db.getProducts(1, 1),
-    db.getInquiries(undefined, 1, 1),
-    db.getInquiries('pending', 1, 1)
-  ]);
+  const stats = await db.getStats();
   return c.json({
     success: true,
-    data: {
-      totalProducts: products.total,
-      totalInquiries: inquiries.total,
-      pendingInquiries: pending.total
-    }
+    data: stats,
   });
 });
 
