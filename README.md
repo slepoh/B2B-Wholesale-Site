@@ -8,13 +8,15 @@
 - **首页幻灯片** - 轮播展示，支持后台管理
 - **产品展示** - 首页展示推荐产品，支持分页浏览
 - **产品分类** - 多级分类浏览
-- **产品详情** - 完整产品信息和规格
-- **解决方案** - 行业解决方案展示
-- **客户案例** - 成功案例展示
-- **新闻博客** - 公司动态和行业资讯
+- **产品详情** - 独立详情页（`/product/:slug`），含图片画廊、规格表、Product JSON-LD
+- **解决方案** - 行业解决方案展示与详情页（`/solution/:slug`）
+- **客户案例** - 成功案例展示与详情页（`/case/:slug`）
+- **新闻博客** - 公司动态、行业资讯与详情页（`/news/:slug`）
+- **自定义页面** - About / Contact 等页面（`/page/:slug`）
 - **询盘功能** - 客户可以发送询盘，自动发送邮件通知
 - **悬浮客服** - Email、电话、WhatsApp 快速联系
 - **Get a Quote 弹出框** - 快速询价弹窗
+- **多语言** - 前台语言切换（需配置翻译 API）
 - **SEO 优化** - JSON-LD、Sitemap、Robots.txt、Meta 标签
 - **LLMs.txt** - AI 爬虫友好的站点内容文档
 
@@ -146,29 +148,27 @@ wrangler kv namespace create CACHE
 2. 复制 `src/db/schema.sql` 文件内容
 3. 粘贴到查询框中执行
 
-### 3. 创建管理员账户
+### 3. 配置管理员账户
 
-#### 生成密码哈希
+后台采用 **HTTP Basic Auth**，凭据来自环境变量 `ADMIN_USERNAME` / `ADMIN_PASSWORD`（不需要往数据库写 `admins` 表）。
 
-访问在线 bcrypt 工具（如 https://bcrypt.online/）生成密码哈希，或使用本地 Node.js：
+生产环境请用 Secret 配置：
 
 ```bash
-node -e "const bcrypt = require('bcryptjs'); const hash = bcrypt.hashSync('你的密码', 10); console.log(hash);"
+wrangler secret put ADMIN_USERNAME
+wrangler secret put ADMIN_PASSWORD
 ```
 
-#### 插入管理员数据
+本地开发时复制 `.dev.vars.example` 为 `.dev.vars` 并填入：
 
-在 D1 查询界面执行：
-
-```sql
-INSERT INTO admins (username, password_hash, created_at) VALUES ('admin', '$2b$10$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', datetime('now'));
+```bash
+cp .dev.vars.example .dev.vars
+# 编辑 .dev.vars，设置 ADMIN_USERNAME / ADMIN_PASSWORD
 ```
 
-将 `$2b$10$...` 替换为上一步生成的哈希值。
+> `.dev.vars` 已在 `.gitignore` 中，不会被提交。
 
-#### 初始化翻译配置（可选）
-
-如果启用多语言功能，翻译配置表会自动创建。可以在后台 **Translation Settings** 页面配置翻译 API。
+密码校验使用**常量时间比较**（timing-safe），避免通过响应时间泄露信息。
 
 ### 4. 连接 GitHub 仓库
 
@@ -414,7 +414,8 @@ B2B-Wholesale-Site/
 │   │   ├── jsonld.ts           # JSON-LD API
 │   │   └── robots.ts           # Robots API
 │   ├── db/                     # 数据库相关
-│   │   ├── index.ts            # 数据库操作类（带缓存）
+│   │   ├── index.ts            # 数据库操作类（读写 KV 缓存 + 失效）
+│   │   ├── cache.ts            # 缓存后端抽象（KV / Memory 双实现，前缀失效）
 │   │   └── schema.sql          # 数据库结构
 │   ├── middleware/             # 中间件
 │   │   └── auth.ts             # 认证中间件
@@ -433,51 +434,72 @@ B2B-Wholesale-Site/
 │   └── images/                 # 静态图片（如占位图）
 ├── scripts/
 │   └── generate-admin-hash.js  # 密码哈希生成脚本
-├── wrangler.toml               # Cloudflare 配置
+├── .dev.vars.example           # 本地开发环境变量模板（复制为 .dev.vars）
+├── wrangler.toml               # Cloudflare 配置（D1 / R2 / KV 绑定）
 ├── package.json                # 项目配置
 └── tsconfig.json               # TypeScript 配置
 ```
+
+### 详情页路由
+
+前台为各内容类型提供独立的详情页路由，均带 SEO 元信息与 JSON-LD：
+
+| 路由 | 内容 |
+|------|------|
+| `/product/:slug` | 产品详情（图片画廊、规格表、Product JSON-LD、询盘按钮） |
+| `/solution/:slug` | 解决方案详情 |
+| `/case/:slug` | 客户案例详情 |
+| `/news/:slug` | 新闻 / 博客详情 |
+| `/page/:slug` | 自定义页面详情 |
 
 ---
 
 ## 常用命令
 
-由于采用 Git 自动部署，代码更新流程如下：
-
-```bash
-# 1. 克隆仓库（如首次）
-git clone https://github.com/你的用户名/B2B-Wholesale-Site.git
-cd B2B-Wholesale-Site
-
-# 2. 创建开发分支
-git checkout -b feature/xxx
-
-# 3. 修改代码后提交
-git add .
-git commit -m "描述你的修改"
-
-# 4. 推送到 GitHub，自动触发部署
-git push origin main
-```
-
----
-
-## 本地开发（可选）
-
-如果需要在本地测试：
+### 本地开发
 
 ```bash
 # 安装依赖
 npm install
 
-# 本地开发
+# 启动本地开发（wrangler dev 会自动读取 .dev.vars）
 npm run dev
 
 # TypeScript 类型检查
 npm run typecheck
+
+# 部署到 Cloudflare
+npm run deploy
 ```
 
 > **提示**：Workers 原生支持 TypeScript，无需额外的构建步骤。
+> 本地首次运行前：`cp .dev.vars.example .dev.vars` 并填入凭据。
+> 若 `wrangler dev` 启动后 curl 首页卡住，可显式指定 `--ip 127.0.0.1 --port 8787`。
+
+### 首次部署资源初始化
+
+```bash
+# 创建 KV 缓存命名空间（把返回的 id 填入 wrangler.toml）
+wrangler kv namespace create CACHE
+
+# 创建 D1 数据库（把返回的 database_id 填入 wrangler.toml）
+wrangler d1 create b2b_wholesale_db
+
+# 初始化表结构
+wrangler d1 execute b2b_wholesale_db --remote --file=src/db/schema.sql
+
+# 配置密钥
+wrangler secret put ADMIN_USERNAME
+wrangler secret put ADMIN_PASSWORD
+```
+
+### Git 自动部署
+
+```bash
+git add .
+git commit -m "描述你的修改"
+git push origin main      # Cloudflare 会自动触发部署
+```
 
 ---
 
@@ -513,18 +535,26 @@ npm run typecheck
 
 ## 缓存机制
 
-系统内置内存缓存，自动缓存以下数据：
+缓存由 **Cloudflare KV** 提供，跨请求共享（而非进程内内存）。各实体 TTL 配置见 `src/db/cache.ts` 的 `CACHE_CONFIG`：
 
 | 数据类型 | 缓存时间 |
 |----------|----------|
-| 产品列表 | 5 分钟 |
-| 产品详情 | 10 分钟 |
+| 产品列表 / Featured 产品 | 5 分钟 |
+| 产品详情 | 5 分钟 |
 | 分类列表 | 10 分钟 |
 | 网站设置 | 5 分钟 |
 | 翻译数据 | 10 分钟 |
+| 解决方案 / 案例 | 10 分钟 |
+| 新闻 | 5 分钟 |
+| 页面 | 10 分钟 |
 | 幻灯片 | 5 分钟 |
+| SEO（JSON-LD / robots） | 60 分钟 |
 
-缓存会在数据更新时自动失效。
+**缓存失效**：后台任一增删改操作完成后，会**主动删除**对应实体的所有缓存 key（含列表、按 slug、按 id 等关联 key），因此**后台改动对前台立即可见**。
+
+> **未绑定 KV 时**会降级为单请求内存缓存：功能可用，但不跨请求，后台改动不即时生效，且每次请求都会穿透 D1。生产环境请务必绑定 `CACHE`。
+
+后台侧边栏提供 **清除缓存** 按钮，可一键 flush 全部缓存前缀。
 
 ---
 
@@ -571,26 +601,41 @@ npm run typecheck
 #### 3. 图片上传失败
 
 1. 检查 R2 CORS 配置
-2. 检查 R2 绑定名称是否正确（`MEDIA`）
-3. 查看 Worker 日志排查问题
+2. 检查 R2 绑定名称是否正确（必须为 `R2_BUCKET`）
+3. 检查写接口的认证头是否正确（`POST /api/upload/image` 需要 Basic Auth）
+4. 查看 Worker 日志排查问题
 
-#### 4. 静态文件 404（/js/admin.js 等）
+#### 4. 图片上传成功但访问返回 401
 
-确保 wrangler.toml 包含 `[site]` 配置：
+图片读接口 `GET /api/upload/image/*` 是**公开**的，无需认证。若仍 401：
+
+1. 确认 `src/index.ts` 中**没有**对 `/api/upload/*` 注册全局 `authMiddleware`（鉴权应只在 `POST`/`DELETE` 上）
+2. 若不希望走 Worker 代理，可配置 `MEDIA_BASE_URL` 指向 R2 自定义域名
+
+#### 5. 静态文件 404（/js/admin.js 等）
+
+确保 `wrangler.toml` 包含 `[assets]` 配置：
 
 ```toml
-[site]
-bucket = "./public"
+[assets]
+directory = "./public"
 ```
 
-Cloudflare Workers Sites 会自动从 public 目录提供静态文件，无需额外配置。
+Worker 会自动从 `public` 目录提供静态资源，无需额外配置。
 
-#### 5. 后台无法登录
+#### 6. 后台无法登录
 
-1. 确认已在环境变量中配置 ADMIN_USERNAME 和 ADMIN_PASSWORD
-2. 确认 Worker 设置中已添加这两个环境变量
+1. 确认已配置 `ADMIN_USERNAME` 和 `ADMIN_PASSWORD`（环境变量或 Secret）
+2. 若未配置，`authMiddleware` 会返回 `500 Admin not configured`
+3. 凭据错误返回 `401 Unauthorized`
 
-#### 5. 邮件发送失败
+#### 7. 后台改动前台不生效
+
+1. 确认已绑定 `CACHE`（KV Namespace）；未绑定时会打印降级警告，缓存不跨请求
+2. 可在后台点击 **清除缓存** 强制刷新
+3. 检查对应实体的写操作是否触发了 `invalidateCache`（关联 key 需一并失效）
+
+#### 8. 邮件发送失败
 
 1. 确认已配置 `EMAIL_API_KEY` 环境变量
 2. 检查 `ADMIN_EMAIL` 是否正确
@@ -641,6 +686,19 @@ Cloudflare Workers Sites 会自动从 public 目录提供静态文件，无需�
 ---
 
 ## 更新日志
+
+### v1.3.0
+- **新增 KV 跨请求缓存层**（`src/db/cache.ts`），写操作主动失效前缀，打通「后台改 → 前台立即生效」的完整 CMS 闭环
+- **补齐 5 个详情页路由**（`/product|solution|case|news|page/:slug`），修复列表页 "Read More" 全部 404
+- 产品详情页支持图片画廊、规格表、Product JSON-LD 结构化数据
+- **修复 R2 图片公开访问 401**：鉴权下沉到写接口，图片读接口公开；上传返回 URL 改走 `MEDIA_BASE_URL` 或 Worker 代理
+- **修复缓存关联 key 失效**：删除产品后详情页不再残留（原先只失效 `products:*`）
+- 所有写接口与敏感读接口（询盘 / Leads）补齐 `authMiddleware`
+- 后台鉴权改用常量时间比较，移除明文密码与调试日志
+- 修复 translations 路由顺序（`/config` 被 `/:locale` 吞掉）
+- 后台新增 **清除缓存** 按钮 + toast 提示；产品表单新增 `specifications` 字段
+- `wrangler.toml` 新增 KV 绑定，移除明文密码，D1 id 改为占位符；敏感项改用 `wrangler secret`
+- 新增 `.dev.vars.example` 本地开发模板
 
 ### v1.2.0
 - 新增多国语言翻译功能
